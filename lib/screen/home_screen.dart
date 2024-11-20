@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
+import '../weather_service.dart';
+import '../models/weather.dart';
 import 'package:project/widgets/drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  WeatherService weatherService = WeatherService();
+  Weather? weather;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWeather();
+  }
+
+  Future<void> fetchWeather() async {
+    try {
+      final weatherData = await weatherService.fetchWeather('Islamabad');
+      setState(() {
+        weather = Weather.fromJson(weatherData);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: const LeftDrawer(),
       appBar: AppBar(
-
         title: const Text('Layouts', style: TextStyle(color: Colors.black87)),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black54),
-        // leading: IconButton(icon: const Icon(Icons.menu), onPressed: () {
-        //
-        //
-        // }),
         actions: <Widget>[
           IconButton(icon: const Icon(Icons.cloud_queue), onPressed: () {})
         ],
@@ -82,31 +99,40 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Divider(),
         Text(
-          'Its going to be a great birthday. We are going out for dinner at my favorite place...',
+          'It\'s going to be a great birthday. We are going out for dinner at my favorite place...',
           style: TextStyle(color: Colors.black54),
         ),
       ],
     );
   }
 
-  Row _buildJournalWeather() {
-    return const Row(
+  Widget _buildJournalWeather() {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Icon(Icons.wb_sunny, color: Colors.orange),
-          ],
-        ),
-        SizedBox(width: 16.0),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('81° Clear', style: TextStyle(color: Colors.deepOrange)),
-            Text('4500 San Alpho Drive, Dallas, TX United States', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
+        if (weather != null) ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Icon(Icons.wb_sunny, color: Colors.orange),
+                ],
+              ),
+              const SizedBox(width: 16.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('${weather!.city}: ${weather!.temperature}°C', style: TextStyle(color: Colors.blue)),
+                  Text(weather!.description, style: TextStyle(color: Colors.red)),
+                ],
+              ),
+            ],
+          ),
+        ] else ...[
+          CircularProgressIndicator(),
+        ],
       ],
     );
   }
@@ -131,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Row _buildJournalFooterImages() {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment .start,
       children: <Widget>[
         CircleAvatar(backgroundImage: AssetImage('assets/images/background.png'), radius: 40.0),
         CircleAvatar(backgroundImage: AssetImage('assets/images/B1.jpg'), radius: 40.0),
